@@ -1,0 +1,27 @@
+version: '3.9'
+
+volumes:
+  sqlvolume:
+  redis-data:
+
+services:
+  sql:
+    image: "postgis/postgis"
+    hostname: "sql"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=wai
+    command: ["-c", "max_connections=2000", "-c", "shared_buffers=2560MB",]
+    volumes:
+      - sqlvolume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+      
+  redis:
+    image: "redis"
+    hostname: "redis"
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/redis/data    
