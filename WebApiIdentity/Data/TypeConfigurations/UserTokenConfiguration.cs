@@ -11,9 +11,9 @@ public class UserTokenConfiguration : IEntityTypeConfiguration<UserToken>
     {
         builder.ToTable("UserTokens");
 
-        builder.Property(x => x.Location)
-            .HasColumnType("geography (point)")
-            .HasDefaultValue(Point.Empty)
-            .IsRequired();
+        //builder.Property(x => x.Location)
+        //    .HasColumnType("geography (point)")
+        //    .HasDefaultValue(Point.Empty)
+        //    .IsRequired();
     }
 }

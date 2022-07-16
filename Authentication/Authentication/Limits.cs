@@ -1,4 +1,4 @@
-﻿namespace WebApiIdentity.Models
+﻿namespace Authentication
 {
     public static class Limits
     {
@@ -6,11 +6,11 @@
         {
             public const int MaxLength = 150;
         }
-        
+
         // see. https://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-E.164-201011-I!!PDF-R&type=items
         public static class Phone
         {
-            public const int MaxLength = 15;    
+            public const int MaxLength = 15;
             public const int MinLength = 7;
             public const string Pattern = @"^\d{7,15}$";
         }
@@ -27,7 +27,7 @@
         public static class Url
         {
             // see. https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
-            public const int MaxLength = 2000;    
+            public const int MaxLength = 2000;
         }
 
         public static class Password
@@ -47,7 +47,7 @@
         {
             public const int MaxLength = 12;
             public const int MinLength = 4;
-            public const string Pattern = @"^([0-9]|[A-Z]){4,12}$";            
+            public const string Pattern = @"^([0-9]|[A-Z]){4,12}$";
         }
 
         public static class ConfirmationCode
@@ -56,28 +56,28 @@
             public const int MinLength = 4;
             public const string Pattern = @"^\d{4,6}$";
         }
-        
+
         public static class LicensePlateNumber
         {
             public const int MaxLength = 16;
             public const int MinLength = 5;
             public const string Pattern = @"^.{7,15}$";
-        } 
-        
+        }
+
         public static class FirstName
         {
             public const int MaxLength = 50;
             public const int MinLength = 1;
             public const string Pattern = @"^.{1,50}$";
         }
-        
+
         public static class MiddleName
         {
             public const int MaxLength = 50;
             public const string Pattern = @"^.{0,50}$";
         }
 
-        public static class LastName 
+        public static class LastName
         {
             public const int MaxLength = 50;
             public const int MinLength = 1;
@@ -89,32 +89,32 @@
             public const int MaxLength = 150;
         }
 
-        public static class AnyShortName 
+        public static class AnyShortName
         {
             public const int MaxLength = 50;
         }
 
-        public static class AnyFullName 
+        public static class AnyFullName
         {
             public const int MaxLength = 150;
         }
 
-        public static class Address 
+        public static class Address
         {
             public const int MaxLength = 250;
         }
 
-        public static class Entrance 
+        public static class Entrance
         {
             public const int MaxLength = 5;
         }
 
-        public static class Floor 
+        public static class Floor
         {
             public const int MaxLength = 5;
         }
 
-        public static class Apartment 
+        public static class Apartment
         {
             public const int MaxLength = 5;
         }

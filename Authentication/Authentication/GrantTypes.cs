@@ -1,4 +1,4 @@
-﻿namespace WebApiIdentity.Models;
+﻿namespace Authentication;
 
 public static class GrantTypes
 {

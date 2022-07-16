@@ -1,5 +1,5 @@
-﻿using FluentValidation;
-using WebApiIdentity.Models;
+﻿using Authentication;
+using FluentValidation;
 
 namespace WebApiIdentity.Application.Token.Commands.SignIn;
 

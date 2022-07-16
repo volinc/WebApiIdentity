@@ -2,10 +2,10 @@
 
 namespace WebApiIdentity.Application.Token.Commands.SignOut;
 
-public class SignOutCommandHandler : RequestHandler<SignOutCommand, Unit>
+public class SignOutCommandHandler : IRequestHandler<SignOutCommand, Unit>
 {
-    protected override Unit Handle(SignOutCommand request)
+    public Task<Unit> Handle(SignOutCommand request, CancellationToken cancellationToken)
     {
-        return Unit.Value;
+        return Task.FromResult(Unit.Value);
     }
 }

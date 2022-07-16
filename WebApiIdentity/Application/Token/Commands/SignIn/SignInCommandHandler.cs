@@ -1,9 +1,12 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Authentication;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using WebApiIdentity.Domain;
 using WebApiIdentity.Domain.Identity;
-using WebApiIdentity.Models;
 
 namespace WebApiIdentity.Application.Token.Commands.SignIn;
 
@@ -11,12 +14,21 @@ public class SignInCommandHandler : IRequestHandler<SignInCommand, SignInCommand
 {
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
+    private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler;
+    private readonly JwtSettings _jwtSettings;
+    private readonly CurrentTimeFunc _now;
 
     public SignInCommandHandler(UserManager<User> userManager, 
-        SignInManager<User> signInManager)
+        SignInManager<User> signInManager,
+        JwtSecurityTokenHandler jwtSecurityTokenHandler,
+        JwtSettings jwtSettings,
+        CurrentTimeFunc now)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _jwtSecurityTokenHandler = jwtSecurityTokenHandler;
+        _jwtSettings = jwtSettings;
+        _now = now;
     }
     
     public async Task<SignInCommandResult> Handle(SignInCommand request, CancellationToken cancellationToken)
@@ -37,38 +49,52 @@ public class SignInCommandHandler : IRequestHandler<SignInCommand, SignInCommand
         if (user == null)
             throw new InvalidOperationException("Invalid username or password");
 
-        if (!await _signInManager.CanSignInAsync(user) || (_userManager.SupportsUserLockout && await _userManager.IsLockedOutAsync(user)))
-            throw new InvalidOperationException("The specified user cannot sign in");
-
-        if (!await _userManager.CheckPasswordAsync(user, request.Password))
+        var signInResult = await _signInManager.PasswordSignInAsync(user, request.Password, false, false);
+        if (!signInResult.Succeeded)
             throw new InvalidOperationException("Invalid username or password");
 
-        if (_userManager.SupportsUserLockout)
-            await _userManager.ResetAccessFailedCountAsync(user);
+        var signId = Guid.NewGuid().ToString("N");
+        var accessToken = CreateAccessToken(signId, user);
 
-        var principal = await _signInManager.CreateUserPrincipalAsync(user);
-
-        var ticket = new AuthenticationTicket(
-            principal,
-            new AuthenticationProperties(),
-            JwtBearerDefaults.AuthenticationScheme);
-
-        var signInResult = await _signInManager.CheckPasswordSignInAsync(user, request.Password, true);
-        if (signInResult.Succeeded)
+        return new SignInCommandResult
         {
+            AccessToken = _jwtSecurityTokenHandler.WriteToken(accessToken),
+            ExpiresIn = (int)_jwtSettings.AccessTokenLifetime.TotalSeconds,
+            TokenType = "bearer"
+        };
+    }
 
-        }
+    private JwtSecurityToken CreateAccessToken(string signId, User user)
+    {
+        var tokenId = Guid.NewGuid().ToString("N");
 
-        //var now = DateTimeOffset.UtcNow;
-        //await _signInManager.SignInAsync(user, new OAuthChallengeProperties
-        //{
-        //    AllowRefresh = true,
-        //    ExpiresUtc = now.AddMinutes(5),
-        //    IsPersistent = true,
-        //    IssuedUtc = now
+        var subject = new ClaimsIdentity(new[]
+        {
+            new Claim(Constants.JwtClaimTypes.Subject, user.Id.ToString()),
+            new Claim(Constants.JwtClaimTypes.Email, user.Email),
+            new Claim(Constants.CustomClaimTypes.SignId, signId),
+            new Claim(Constants.JwtClaimTypes.TokenId, tokenId),
+            new Claim(Constants.CustomClaimTypes.TokenType, Constants.JwtTokenTypes.Access)
+        });
+        
+        if (user.NormalizedUserName != null)
+            subject.AddClaim(new Claim(Constants.JwtClaimTypes.Name, user.NormalizedUserName));
+        
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.AccessTokenSecret));
+        const string algorithm = SecurityAlgorithms.HmacSha256Signature;
+        var signingCredentials = new SigningCredentials(key, algorithm);
 
-        //}, request.GrantType);
+        var currentTime = _now();
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = subject,
+            Audience = _jwtSettings.Audience,
+            Issuer = _jwtSettings.Issuer,
+            Expires = (currentTime + _jwtSettings.AccessTokenLifetime).DateTime.ToUniversalTime(),
+            SigningCredentials = signingCredentials,
+            IssuedAt = currentTime.DateTime.ToUniversalTime()
+        };
 
-        return new SignInCommandResult();
+        return _jwtSecurityTokenHandler.CreateJwtSecurityToken(tokenDescriptor);
     }
 }

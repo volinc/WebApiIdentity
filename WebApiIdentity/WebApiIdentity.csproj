@@ -8,9 +8,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Application\Token\Queries\**" />
+    <Content Remove="Application\Token\Queries\**" />
+    <EmbeddedResource Remove="Application\Token\Queries\**" />
+    <None Remove="Application\Token\Queries\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="FluentValidation" Version="11.1.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.1.0" />
     <PackageReference Include="MediatR" Version="10.0.1" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="10.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.7" />
@@ -27,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Application\Token\Queries\" />
+    <ProjectReference Include="..\Authentication\Authentication\Authentication.csproj" />
   </ItemGroup>
 
 </Project>
