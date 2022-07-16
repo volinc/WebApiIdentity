@@ -16,10 +16,9 @@ builder.Services.AddIdentityAuthentication<AppDbContext, User, Role>(builder.Con
 
 var assembly = Assembly.GetExecutingAssembly();
 builder.Services.AddMediatR(assembly);
-//builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(IPipelineBehavior<,>));
 builder.Services.AddValidatorsFromAssembly(assembly);
 
-builder.Services.TryAddSingleton<CurrentTimeFunc>(() => DateTimeOffset.UtcNow);
+builder.Services.TryAddSingleton<CurrentTimeFunc>(() => DateTimeOffset.Now);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

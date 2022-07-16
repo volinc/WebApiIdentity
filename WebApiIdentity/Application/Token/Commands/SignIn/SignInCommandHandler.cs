@@ -33,13 +33,11 @@ public class SignInCommandHandler : IRequestHandler<SignInCommand, SignInCommand
     
     public async Task<SignInCommandResult> Handle(SignInCommand request, CancellationToken cancellationToken)
     {
-        switch (request.GrantType)
-        {   
-            case GrantTypes.Password:
-                return await SingInPasswordAsync(request);
-            default:
-                throw new NotSupportedException();
-        }
+        return request.GrantType switch
+        {
+            GrantTypes.Password => await SingInPasswordAsync(request),
+            _ => throw new NotSupportedException()
+        };
     }
 
     // https://devblogs.microsoft.com/dotnet/bearer-token-authentication-in-asp-net-core/
@@ -49,7 +47,7 @@ public class SignInCommandHandler : IRequestHandler<SignInCommand, SignInCommand
         if (user == null)
             throw new InvalidOperationException("Invalid username or password");
 
-        var signInResult = await _signInManager.PasswordSignInAsync(user, request.Password, false, false);
+        var signInResult = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
         if (!signInResult.Succeeded)
             throw new InvalidOperationException("Invalid username or password");
 
