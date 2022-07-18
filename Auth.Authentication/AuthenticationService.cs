@@ -4,7 +4,7 @@ using Auth.Authentication.Constants;
 using Auth.Authentication.Extensions;
 using Auth.Authentication.Handlers;
 using Auth.Authentication.Helpers;
-using Auth.Authentication.TokenStorage;
+using Auth.Authentication.SessionStorage;
 using Auth.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -14,31 +14,29 @@ namespace Auth.Authentication;
 
 public class AuthenticationService
 {
-    public delegate Task<User> ValidateAsync(string grantType, long userId);
-
     private readonly UserManager<User> _userManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly ITokenStorage _tokenStorage;
+    private readonly ISessionStorage _sessionStorage;
     private readonly JwtSettings _jwtSettings;
     private readonly AccessTokenHandler _accessTokenHandler;
     private readonly RefreshTokenHandler _refreshTokenHandler;
     
     public AuthenticationService(UserManager<User> userManager, 
         IHttpContextAccessor httpContextAccessor,
-        ITokenStorage tokenStorage,
+        ISessionStorage sessionStorage,
         JwtSettings jwtSettings,
         AccessTokenHandler accessTokenHandler,
         RefreshTokenHandler refreshTokenHandler)
     {
         _userManager = userManager;
         _httpContextAccessor = httpContextAccessor;
-        _tokenStorage = tokenStorage;
+        _sessionStorage = sessionStorage;
         _jwtSettings = jwtSettings;
         _accessTokenHandler = accessTokenHandler;
         _refreshTokenHandler = refreshTokenHandler;
     }
 
-    public async Task<AccessTokenResponse> CreateTokensAsync(AccessTokenRequest request)
+    public async Task<AccessTokenResponse> AuthenticateAsync(AccessTokenRequest request)
     {
         var (user, signId) = request.GrantType switch
         {
@@ -56,7 +54,7 @@ public class AuthenticationService
         var userAgent = httpContext.GetUserAgent();
         var clientIp = httpContext.GetClientIp();
 
-        await _tokenStorage.AddOrUpdateAsync(accessToken, refreshToken, _jwtSettings.RefreshTokenLifetime,
+        await _sessionStorage.AddOrUpdateAsync(accessToken, refreshToken, _jwtSettings.RefreshTokenLifetime,
             new Client
             {
                 UserAgent = userAgent,
@@ -110,18 +108,18 @@ public class AuthenticationService
         var userId = securityToken.Claims.GetUserId();
         var signId = securityToken.Claims.GetSignId();
 
-        if (!await _tokenStorage.IsRefreshStoredAsync(userId, signId, securityToken.Id))
+        if (!await _sessionStorage.IsRefreshStoredAsync(userId, signId, securityToken.Id))
             throw new AuthenticationException(Messages.IncorrectRefreshToken);
 
         var user = await _userManager.FindByIdAsync(userId.ToString());
         return (user, signId);
     }
 
-    public Task<Dictionary<string, Client>> GetAllSessionsAsync(long userId) => _tokenStorage.GetAllSessionsAsync(userId);
+    public Task<Dictionary<string, Client>> GetAllSessionsAsync(long userId) => _sessionStorage.GetAllSessionsAsync(userId);
 
-    public Task<Dictionary<string, Client>> GetActiveSessionsAsync(long userId) => _tokenStorage.GetActiveSessionsAsync(userId, DateTimeOffset.Now);
+    public Task<Dictionary<string, Client>> GetActiveSessionsAsync(long userId) => _sessionStorage.GetActiveSessionsAsync(userId, DateTimeOffset.Now);
 
-    public Task RemoveAllTokensAsync(long userId, string exceptSignId) => _tokenStorage.RemoveAllAsync(userId, exceptSignId);
+    public Task RemoveAllTokensAsync(long userId, string exceptSignId) => _sessionStorage.RemoveAllAsync(userId, exceptSignId);
 
     public Task RemoveTokensAsync(long userId, string? signIdForDelete)
     {
@@ -139,6 +137,6 @@ public class AuthenticationService
             signId = jwtSecurityTokenHandler.ReadJwtToken(token).Claims.GetSignId();
         }
 
-        return _tokenStorage.RemoveAsync(userId, signId);
+        return _sessionStorage.RemoveAsync(userId, signId);
     }
 }

@@ -1,6 +1,6 @@
-﻿namespace Auth.Authentication.TokenStorage;
+﻿namespace Auth.Authentication.SessionStorage;
 
-public static class TokenStorageHelper
+public static class SessionStorageHelper
 {
     public static string Key(string audience, string userId) => $"Token-{audience}-{userId}";
     public static string Key(string audience, long userId) => $"Token-{audience}-{userId}";

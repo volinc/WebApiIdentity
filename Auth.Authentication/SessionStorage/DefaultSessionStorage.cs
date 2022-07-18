@@ -2,9 +2,9 @@
 using Auth.Authentication.Extensions;
 using Microsoft.Extensions.Caching.Distributed;
 
-namespace Auth.Authentication.TokenStorage;
+namespace Auth.Authentication.SessionStorage;
 
-public class DefaultTokenStorage : ITokenStorage
+public class DefaultSessionStorage : ISessionStorage
 {
     private static readonly Dictionary<string, Client> EmptyClients = new();
 
@@ -12,7 +12,7 @@ public class DefaultTokenStorage : ITokenStorage
     private readonly IDistributedCache _cache;
     private readonly CurrentTimeFunc _now;
 
-    public DefaultTokenStorage(
+    public DefaultSessionStorage(
         IDistributedCache cache,
         Utf8JsonBinarySerializer binarySerializer,
         CurrentTimeFunc now)
@@ -192,14 +192,14 @@ public class DefaultTokenStorage : ITokenStorage
 
     private async Task RemoveAllTokensByUserId(long userId)
     {
-        var key = TokenStorageHelper.Key(userId);
+        var key = SessionStorageHelper.Key(userId);
 
         await _cache.RemoveAsync(key);
     }
 
     private async Task<UserSignIn?> GetUserSignInByUserId(long userId)
     {
-        var key = TokenStorageHelper.Key(userId);
+        var key = SessionStorageHelper.Key(userId);
         var bytes = await _cache.GetAsync(key);
 
         return bytes == null
@@ -209,7 +209,7 @@ public class DefaultTokenStorage : ITokenStorage
 
     private async Task SaveUserSignInByUserId(long userId, UserSignIn userSignIn, DateTimeOffset absoluteExpiration)
     {
-        var key = TokenStorageHelper.Key(userId);
+        var key = SessionStorageHelper.Key(userId);
         var bytes = _binarySerializer.Serialize(userSignIn);
 
         await _cache.SetAsync(key, bytes, new DistributedCacheEntryOptions

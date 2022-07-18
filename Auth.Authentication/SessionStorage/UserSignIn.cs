@@ -1,4 +1,4 @@
-﻿namespace Auth.Authentication.TokenStorage;
+﻿namespace Auth.Authentication.SessionStorage;
 
 public class UserSignIn
 {

@@ -1,8 +1,8 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 
-namespace Auth.Authentication.TokenStorage;
+namespace Auth.Authentication.SessionStorage;
 
-public interface ITokenStorage
+public interface ISessionStorage
 {
     Task ReplaceAllAsync(
         JwtSecurityToken accessToken,

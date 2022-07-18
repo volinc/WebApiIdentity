@@ -1,6 +1,6 @@
 ﻿using Auth.Authentication.Handlers;
 using Auth.Authentication.Helpers;
-using Auth.Authentication.TokenStorage;
+using Auth.Authentication.SessionStorage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -54,14 +54,12 @@ public static class ServiceCollectionExtensions
             .AddSignInManager()
             .AddEntityFrameworkStores<TDbContext>()
             .AddDefaultTokenProviders();
-
-        services.AddDistributedMemoryCache();
-
-        services.AddSingleton<CurrentTimeFunc>(() => DateTimeOffset.Now);
-        services.AddSingleton<Utf8JsonBinarySerializer>();
+        
         services.AddScoped<AuthenticationService>();
-        services.AddScoped<AccessTokenHandler>();
-        services.AddScoped<RefreshTokenHandler>();
-        services.AddScoped<ITokenStorage, DefaultTokenStorage>();
+        services.AddSingleton<ISessionStorage, DefaultSessionStorage>();
+        services.AddSingleton<Utf8JsonBinarySerializer>();
+        services.AddSingleton<CurrentTimeFunc>(() => DateTimeOffset.Now);
+        services.AddSingleton<AccessTokenHandler>();
+        services.AddSingleton<RefreshTokenHandler>();
     }
 }

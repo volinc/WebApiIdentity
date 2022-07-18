@@ -17,7 +17,7 @@ public class TokenController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> SignInAsync(AccessTokenRequest request)
     {
-        var value = await _authenticationService.CreateTokensAsync(request);
+        var value = await _authenticationService.AuthenticateAsync(request);
 
         return Ok(value);
     }

@@ -8,7 +8,9 @@
       "launchUrl": "swagger",
       "applicationUrl": "https://localhost:7032",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "CONNECTION_STRING": "Server=localhost; Database=auth; Username=postgres; Password=pass;",
+        "REDIS_CONNECTION_STRING": "127.0.0.1:6379"
       }
     }
   }

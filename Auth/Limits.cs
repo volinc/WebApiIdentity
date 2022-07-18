@@ -1,4 +1,4 @@
-﻿namespace Auth.Authentication
+﻿namespace Auth
 {
     public static class Limits
     {

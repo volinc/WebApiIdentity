@@ -9,6 +9,14 @@ public class AppDbContext : IdentityDbContext<User, Role, long, UserClaim, UserR
 {
     public const string ConnectionString = "Server=localhost; Database=auth; Username=postgres; Password=pass;";
 
+    public AppDbContext()
+    {
+    }
+
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
+    }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (optionsBuilder.IsConfigured)
