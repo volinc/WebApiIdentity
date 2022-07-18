@@ -20,13 +20,15 @@ public class AuthenticationService
     private readonly JwtSettings _jwtSettings;
     private readonly AccessTokenHandler _accessTokenHandler;
     private readonly RefreshTokenHandler _refreshTokenHandler;
-    
+    private readonly CurrentTimeFunc _now;
+
     public AuthenticationService(UserManager<User> userManager, 
         IHttpContextAccessor httpContextAccessor,
         ISessionStorage sessionStorage,
         JwtSettings jwtSettings,
         AccessTokenHandler accessTokenHandler,
-        RefreshTokenHandler refreshTokenHandler)
+        RefreshTokenHandler refreshTokenHandler,
+        CurrentTimeFunc now)
     {
         _userManager = userManager;
         _httpContextAccessor = httpContextAccessor;
@@ -34,6 +36,7 @@ public class AuthenticationService
         _jwtSettings = jwtSettings;
         _accessTokenHandler = accessTokenHandler;
         _refreshTokenHandler = refreshTokenHandler;
+        _now = now;
     }
 
     public async Task<AccessTokenResponse> AuthenticateAsync(AccessTokenRequest request)
@@ -73,7 +76,7 @@ public class AuthenticationService
         };
     }
 
-    private async Task<(User user, string signId)> AuthenticateByPasswordAsync(string? userName, string? password)
+    private async Task<(User user, string sessionId)> AuthenticateByPasswordAsync(string? userName, string? password)
     {
         var user = await _userManager.FindByEmailAsync(userName);
         if (user == null)
@@ -87,7 +90,7 @@ public class AuthenticationService
         return (user, signId);
     }
 
-    private async Task<(User user, string signId)> AuthenticateByRefreshTokenAsync(string? refreshToken)
+    private async Task<(User user, string sessionId)> AuthenticateByRefreshTokenAsync(string? refreshToken)
     {
         var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
         jwtSecurityTokenHandler.ValidateToken(refreshToken, new TokenValidationParameters
@@ -117,17 +120,23 @@ public class AuthenticationService
 
     public Task<Dictionary<string, Client>> GetAllSessionsAsync(long userId) => _sessionStorage.GetAllSessionsAsync(userId);
 
-    public Task<Dictionary<string, Client>> GetActiveSessionsAsync(long userId) => _sessionStorage.GetActiveSessionsAsync(userId, DateTimeOffset.Now);
+    public Task<Dictionary<string, Client>> GetActiveSessionsAsync(long userId)
+    {
+        return _sessionStorage.GetActiveSessionsAsync(userId, _now());
+    }
 
-    public Task RemoveAllTokensAsync(long userId, string exceptSignId) => _sessionStorage.RemoveAllAsync(userId, exceptSignId);
+    public Task RemoveAllSessionsAsync(long userId, string exceptSessionId)
+    {
+        return _sessionStorage.RemoveAllAsync(userId, exceptSessionId);
+    }
 
-    public Task RemoveTokensAsync(long userId, string? signIdForDelete)
+    public Task RemoveSessionAsync(long userId, string? sessionIdToRemove)
     {
         string? signId;
 
-        if (signIdForDelete != null)
+        if (sessionIdToRemove != null)
         {
-            signId = signIdForDelete;
+            signId = sessionIdToRemove;
         }
         else
         {
