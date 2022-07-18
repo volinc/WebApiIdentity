@@ -1,9 +1,9 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Authentication;
-using System.Text;
 using Auth.Authentication.Constants;
 using Auth.Authentication.Extensions;
 using Auth.Authentication.Handlers;
+using Auth.Authentication.Helpers;
 using Auth.Authentication.TokenStorage;
 using Auth.Identity;
 using Microsoft.AspNetCore.Http;
@@ -38,12 +38,12 @@ public class AuthenticationService
         _refreshTokenHandler = refreshTokenHandler;
     }
 
-    public async Task<AccessTokenResponse> CreateTokensAsync(AccessTokenRequest request, ValidateAsync validate, string userAgent, string ip, string geolocation)
+    public async Task<AccessTokenResponse> CreateTokensAsync(AccessTokenRequest request)
     {
         var (user, signId) = request.GrantType switch
         {
-            GrantTypes.Password => await AuthenticateByPasswordAsync(validate),
-            GrantTypes.RefreshToken => await AuthenticateByRefreshTokenAsync(request.RefreshToken, validate),
+            GrantTypes.Password => await AuthenticateByPasswordAsync(request.Username, request.Password),
+            GrantTypes.RefreshToken => await AuthenticateByRefreshTokenAsync(request.RefreshToken),
             _ => throw new AuthenticationException(Messages.IncorrectGrantType)
         };
 
@@ -52,12 +52,16 @@ public class AuthenticationService
         var accessToken = _accessTokenHandler.CreateToken(user, roles.ToArray(), signId);
         var refreshToken = _refreshTokenHandler.CreateToken(user, signId);
 
+        var httpContext = _httpContextAccessor.HttpContext;
+        var userAgent = httpContext.GetUserAgent();
+        var clientIp = httpContext.GetClientIp();
+
         await _tokenStorage.AddOrUpdateAsync(accessToken, refreshToken, _jwtSettings.RefreshTokenLifetime,
             new Client
             {
-                Name = userAgent,
-                Ip = ip,
-                Geolocation = geolocation
+                UserAgent = userAgent,
+                Ip = clientIp,
+                Location = null
             });
 
         var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
@@ -71,20 +75,27 @@ public class AuthenticationService
         };
     }
 
-    private static async Task<(User user, string signId)> AuthenticateByPasswordAsync(ValidateAsync validate)
+    private async Task<(User user, string signId)> AuthenticateByPasswordAsync(string? userName, string? password)
     {
-        var user = await validate(GrantTypes.Password, default);
+        var user = await _userManager.FindByEmailAsync(userName);
+        if (user == null)
+            throw new InvalidOperationException("Invalid username or password");
+
+        var validPassword = await _userManager.CheckPasswordAsync(user, password);
+        if (!validPassword)
+            throw new InvalidOperationException("Invalid username or password");
+
         var signId = Guid.NewGuid().ToString("N");
         return (user, signId);
     }
 
-    private async Task<(User user, string signId)> AuthenticateByRefreshTokenAsync(string? refreshToken, ValidateAsync validate)
+    private async Task<(User user, string signId)> AuthenticateByRefreshTokenAsync(string? refreshToken)
     {
         var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
         jwtSecurityTokenHandler.ValidateToken(refreshToken, new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtSettings.TokenPassword)),
+            IssuerSigningKey = SecurityKeyHelper.Create(_jwtSettings.TokenPassword),
             ValidateIssuer = true,
             ValidIssuer = _jwtSettings.Issuer,
             ValidateAudience = true,
@@ -102,15 +113,8 @@ public class AuthenticationService
         if (!await _tokenStorage.IsRefreshStoredAsync(userId, signId, securityToken.Id))
             throw new AuthenticationException(Messages.IncorrectRefreshToken);
 
-        var user = await validate(GrantTypes.RefreshToken, userId);
+        var user = await _userManager.FindByIdAsync(userId.ToString());
         return (user, signId);
-    }
-
-    private JwtSecurityToken GetAccessToken()
-    {
-        var token = _httpContextAccessor.HttpContext?.GetAccessToken();
-        var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
-        return jwtSecurityTokenHandler.ReadJwtToken(token);
     }
 
     public Task<Dictionary<string, Client>> GetAllSessionsAsync(long userId) => _tokenStorage.GetAllSessionsAsync(userId);
@@ -121,7 +125,19 @@ public class AuthenticationService
 
     public Task RemoveTokensAsync(long userId, string? signIdForDelete)
     {
-        var signId = signIdForDelete ?? GetAccessToken().Claims.GetSignId();
+        string? signId;
+
+        if (signIdForDelete != null)
+        {
+            signId = signIdForDelete;
+        }
+        else
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            var token = httpContext.GetAccessToken();
+            var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+            signId = jwtSecurityTokenHandler.ReadJwtToken(token).Claims.GetSignId();
+        }
 
         return _tokenStorage.RemoveAsync(userId, signId);
     }

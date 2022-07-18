@@ -1,7 +1,4 @@
 using Auth.Authentication;
-using Auth.Authentication.Constants;
-using Auth.Identity;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Auth.WebApi.Controllers;
@@ -11,43 +8,16 @@ namespace Auth.WebApi.Controllers;
 public class TokenController : ControllerBase
 {
     private readonly AuthenticationService _authenticationService;
-    private readonly UserManager<User> _userManager;
-
-    public TokenController(AuthenticationService authenticationService,
-        UserManager<User> userManager)
+    
+    public TokenController(AuthenticationService authenticationService)
     {
         _authenticationService = authenticationService;
-        _userManager = userManager;
     }
     
     [HttpPost]
-    public async Task<IActionResult> SignInAsync(AccessTokenRequest request) //SignInCommand command)
+    public async Task<IActionResult> SignInAsync(AccessTokenRequest request)
     {
-        async Task<User> ValidateAsync(string grantType, long userId)
-        {
-            switch (grantType)
-            {
-                case GrantTypes.Password:
-                {
-                    var user = await _userManager.FindByEmailAsync(request.Username);
-                    if (user == null)
-                        throw new InvalidOperationException("Invalid username or password");
-
-                    var validPassword = await _userManager.CheckPasswordAsync(user, request.Password);
-                    if (!validPassword)
-                        throw new InvalidOperationException("Invalid username or password");
-
-                    return user;
-                }
-                case GrantTypes.RefreshToken:
-                    return await _userManager.FindByIdAsync(userId.ToString());
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        var value = await _authenticationService.CreateTokensAsync(request, ValidateAsync, 
-            string.Empty, "127.0.0.1", string.Empty);
+        var value = await _authenticationService.CreateTokensAsync(request);
 
         return Ok(value);
     }

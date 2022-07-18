@@ -42,12 +42,13 @@ public class AccessTokenHandler
             subject.AddClaim(new Claim(CustomClaimTypes.EmailVerified, emailConfirmed));
         }
 
-        var currentTime = _now();
+        
 
         var securityKey = SecurityKeyHelper.Create(_jwtSettings.TokenPassword);
         const string algorithm = SecurityAlgorithms.HmacSha256Signature;
         var signingCredentials = new SigningCredentials(securityKey, algorithm);
 
+        var currentTime = _now();
         var issuedAt = currentTime.DateTime.ToUniversalTime();
         var expires = (currentTime + _jwtSettings.AccessTokenLifetime).DateTime.ToUniversalTime();
 

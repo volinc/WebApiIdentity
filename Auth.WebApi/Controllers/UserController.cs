@@ -1,4 +1,3 @@
-using Auth.Abstractions;
 using Auth.Constants;
 using Auth.Identity;
 using Microsoft.AspNetCore.Authorization;
@@ -51,8 +50,6 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetCurrentUserAsync()
     {
         var user = User;
-
-        var isAdmin = user.IsInRole(Roles.Admin);
         
         await Task.Delay(0);
         return Ok(string.Join(Environment.NewLine, user.Claims.Select(x => $"{x.Type} = {x.Value}")));

@@ -2,7 +2,7 @@
 
 public class Client
 {
-    public string? Name { get; set; }
+    public string? UserAgent { get; set; }
     public string? Ip { get; set; }
-    public string? Geolocation { get; set; }
+    public string? Location { get; set; }
 }

@@ -35,12 +35,17 @@ public class RefreshTokenHandler
         const string algorithm = SecurityAlgorithms.HmacSha256Signature;
         var signingCredentials = new SigningCredentials(securityKey, algorithm);
 
+        var currentTime = _now();
+        var issuedAt = currentTime.DateTime.ToUniversalTime();
+        var expires = (currentTime + _jwtSettings.RefreshTokenLifetime).DateTime.ToUniversalTime();
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = subject,
             Issuer = _jwtSettings.Issuer,
+            IssuedAt = issuedAt,
             Audience = _jwtSettings.Audience,
-            Expires = (_now() + _jwtSettings.RefreshTokenLifetime).DateTime.ToUniversalTime(),
+            Expires = expires,
             SigningCredentials = signingCredentials
         };
 
