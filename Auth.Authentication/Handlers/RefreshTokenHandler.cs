@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using Auth.Authentication.Constants;
 using Auth.Authentication.Helpers;
-using Microsoft.AspNetCore.Identity;
+using Auth.Identity;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Auth.Authentication.Handlers;
@@ -18,16 +18,17 @@ public class RefreshTokenHandler
         _now = now;
     }
 
-    public JwtSecurityToken CreateToken(string signId, IdentityUser<long> user)
+    public JwtSecurityToken CreateToken(User user, string signId)
     {
         var tokenId = Guid.NewGuid().ToString("N");
+        var userId = user.Id.ToString();
 
         var subject = new ClaimsIdentity(new[]
         {
-            new Claim(JwtClaimTypes.Subject, user.Id.ToString()),
+            new Claim(CustomClaimTypes.TokenType, TokenTypes.Refresh),
+            new Claim(CustomClaimTypes.TokenId, tokenId),
             new Claim(CustomClaimTypes.SignId, signId),
-            new Claim(JwtClaimTypes.TokenId, tokenId),
-            new Claim(CustomClaimTypes.TokenType, JwtTokenTypes.Refresh)
+            new Claim(CustomClaimTypes.NameId, userId)
         });
 
         var securityKey = SecurityKeyHelper.Create(_jwtSettings.TokenPassword);

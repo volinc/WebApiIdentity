@@ -1,3 +1,4 @@
+using Auth;
 using Auth.Abstractions;
 using Auth.Authentication.Extensions;
 using Auth.Authentication.TokenStorage;

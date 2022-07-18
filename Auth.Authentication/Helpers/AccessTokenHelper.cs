@@ -8,8 +8,7 @@ namespace Auth.Authentication.Helpers;
 internal static class AccessTokenHelper
 {
     public static bool TryGetAuthorization(HttpRequest httpRequest, out StringValues value) =>
-        httpRequest.Headers.TryGetValue(HeaderNames.Authorization, out value) ||
-        httpRequest.Query.TryGetValue(Constants.JwtTokenNames.AccessToken, out value);
+        httpRequest.Headers.TryGetValue(HeaderNames.Authorization, out value);
 
     public static bool TryGetToken(StringValues authorization, string authenticationScheme, out string? token)
     {

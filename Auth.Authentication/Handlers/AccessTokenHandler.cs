@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using Auth.Authentication.Constants;
 using Auth.Authentication.Helpers;
-using Microsoft.AspNetCore.Identity;
+using Auth.Identity;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Auth.Authentication.Handlers;
@@ -12,29 +12,35 @@ public class AccessTokenHandler
     private readonly JwtSettings _jwtSettings;
     private readonly CurrentTimeFunc _now;
 
-    public AccessTokenHandler(JwtSettings jwtSettings, CurrentTimeFunc now)
+    public AccessTokenHandler(JwtSettings jwtSettings, 
+        CurrentTimeFunc now)
     {
         _jwtSettings = jwtSettings;
         _now = now;
     }
 
-    public JwtSecurityToken CreateToken(string signId, IdentityUser<long> user)
+    public JwtSecurityToken CreateToken(User user, IReadOnlyCollection<string> roles, string signId)
     {
         var tokenId = Guid.NewGuid().ToString("N");
+        var userId = user.Id.ToString();
 
         var subject = new ClaimsIdentity(new[]
         {
-            new Claim(JwtClaimTypes.Subject, user.Id.ToString()),
+            new Claim(CustomClaimTypes.TokenType, TokenTypes.Access),
+            new Claim(CustomClaimTypes.TokenId, tokenId),
             new Claim(CustomClaimTypes.SignId, signId),
-            new Claim(JwtClaimTypes.TokenId, tokenId),
-            new Claim(CustomClaimTypes.TokenType, JwtTokenTypes.Access)
+            new Claim(CustomClaimTypes.NameId, userId)
         });
-
-        if (user.UserName != null)
-            subject.AddClaim(new Claim(JwtClaimTypes.Name, user.UserName));
+        
+        foreach (var role in roles)
+            subject.AddClaim(new Claim(CustomClaimTypes.Role, role));
 
         if (user.Email != null)
-            subject.AddClaim(new Claim(JwtClaimTypes.Email, user.Email));
+        {
+            subject.AddClaim(new Claim(CustomClaimTypes.Email, user.Email));
+            var emailConfirmed = user.EmailConfirmed.ToString();
+            subject.AddClaim(new Claim(CustomClaimTypes.EmailVerified, emailConfirmed));
+        }
 
         var currentTime = _now();
 
@@ -42,13 +48,16 @@ public class AccessTokenHandler
         const string algorithm = SecurityAlgorithms.HmacSha256Signature;
         var signingCredentials = new SigningCredentials(securityKey, algorithm);
 
+        var issuedAt = currentTime.DateTime.ToUniversalTime();
+        var expires = (currentTime + _jwtSettings.AccessTokenLifetime).DateTime.ToUniversalTime();
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = subject,
             Issuer = _jwtSettings.Issuer,
-            IssuedAt = currentTime.DateTime.ToUniversalTime(),
+            IssuedAt = issuedAt,
             Audience = _jwtSettings.Audience,
-            Expires = (currentTime + _jwtSettings.AccessTokenLifetime).DateTime.ToUniversalTime(),
+            Expires = expires,
             SigningCredentials = signingCredentials
         };
 

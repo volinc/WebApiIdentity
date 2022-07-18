@@ -42,17 +42,19 @@ public class UserController : ControllerBase
         {
             await _userManager.AddToRoleAsync(user, Roles.Customer);
         }
-
+        
         return Ok(identityResult);
     }
 
     [HttpGet]
-    //[Authorize(Roles = Roles.Customer)]
+    [Authorize(Roles = Roles.Customer)]
     public async Task<IActionResult> GetCurrentUserAsync()
     {
         var user = User;
+
+        var isAdmin = user.IsInRole(Roles.Admin);
         
         await Task.Delay(0);
-        return Ok(string.Join(Environment.NewLine, user.Claims.Select(x => x.Value)));
+        return Ok(string.Join(Environment.NewLine, user.Claims.Select(x => $"{x.Type} = {x.Value}")));
     }
 }

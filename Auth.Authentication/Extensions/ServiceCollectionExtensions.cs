@@ -1,6 +1,5 @@
 ﻿using Auth.Authentication.Handlers;
 using Auth.Authentication.Helpers;
-using Auth.Authentication.Services;
 using Auth.Authentication.TokenStorage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;

@@ -1,11 +1,26 @@
-﻿namespace Auth.Authentication.Constants;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+
+namespace Auth.Authentication.Constants;
 
 public static class CustomClaimTypes
 {
-    public const string UserRole = "role";
-    public const string SignId = "http://company-name/schema/claims/sign-id";
-    public const string TokenType = "http://company-name/schema/claims/token-type";
-    public const string UserUuid = "http://company-name/schema/claims/user-uuid";
-    public const string CompanyId = "http://company-name/schema/claims/organization-id";
-    public const string CompanyUuid = "http://company-name/schema/claims/organization-uuid";
+    public const string ClaimNamespace = "http://company-name/schema/claims";
+    public const string SignId = $"{ClaimNamespace}/sign-id";
+    public const string TokenType = $"{ClaimNamespace}/token-type";
+    public const string CompanyId = $"{ClaimNamespace}/company-id";
+    
+    #region // https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+
+    public const string Role = ClaimTypes.Role;
+    public const string TokenId = JwtRegisteredClaimNames.Jti;
+    public const string NameId = JwtRegisteredClaimNames.NameId;
+    public const string Name = JwtRegisteredClaimNames.Name;
+    public const string Issuer = JwtRegisteredClaimNames.Iss;
+    public const string IssuedAt = JwtRegisteredClaimNames.Iat;
+    public const string Audience = JwtRegisteredClaimNames.Aud;
+    public const string Email = JwtRegisteredClaimNames.Email;
+    public const string EmailVerified = "email_verified";
+
+    #endregion
 }

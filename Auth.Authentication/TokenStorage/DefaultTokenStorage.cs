@@ -31,7 +31,7 @@ public class DefaultTokenStorage : ITokenStorage
         var userSignIn = new UserSignIn();
         var signId = refreshToken.Claims.GetSignId();
         var absoluteExpiration = _now() + refreshTokenLifetime;
-        var userId = accessToken.Claims.GetUserLongId();
+        var userId = accessToken.Claims.GetUserId();
 
         userSignIn.Items.Add(signId, new SecurityTokens
         {
@@ -50,7 +50,7 @@ public class DefaultTokenStorage : ITokenStorage
         TimeSpan refreshTokenLifetime,
         Client client)
     {
-        var userId = refreshToken.Claims.GetUserLongId();
+        var userId = refreshToken.Claims.GetUserId();
         var currentTime = _now();
         var absoluteExpiration = currentTime + refreshTokenLifetime;
         var signId = refreshToken.Claims.GetSignId();

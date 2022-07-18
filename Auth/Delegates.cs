@@ -1,3 +1,3 @@
-namespace Auth.Abstractions;
+namespace Auth;
 
 public delegate DateTimeOffset CurrentTimeFunc();

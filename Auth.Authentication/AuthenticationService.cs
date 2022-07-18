@@ -5,34 +5,37 @@ using Auth.Authentication.Constants;
 using Auth.Authentication.Extensions;
 using Auth.Authentication.Handlers;
 using Auth.Authentication.TokenStorage;
+using Auth.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Auth.Authentication.Services;
+namespace Auth.Authentication;
 
 public class AuthenticationService
 {
-    public delegate Task<IdentityUser<long>> ValidateAsync(string grantType, long userId);
+    public delegate Task<User> ValidateAsync(string grantType, long userId);
 
+    private readonly UserManager<User> _userManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
-
+    private readonly ITokenStorage _tokenStorage;
     private readonly JwtSettings _jwtSettings;
     private readonly AccessTokenHandler _accessTokenHandler;
     private readonly RefreshTokenHandler _refreshTokenHandler;
-    private readonly ITokenStorage _tokenStorage;
-
-    public AuthenticationService(IHttpContextAccessor httpContextAccessor,
+    
+    public AuthenticationService(UserManager<User> userManager, 
+        IHttpContextAccessor httpContextAccessor,
         ITokenStorage tokenStorage,
         JwtSettings jwtSettings,
         AccessTokenHandler accessTokenHandler,
         RefreshTokenHandler refreshTokenHandler)
     {
+        _userManager = userManager;
         _httpContextAccessor = httpContextAccessor;
+        _tokenStorage = tokenStorage;
         _jwtSettings = jwtSettings;
         _accessTokenHandler = accessTokenHandler;
         _refreshTokenHandler = refreshTokenHandler;
-        _tokenStorage = tokenStorage;
     }
 
     public async Task<AccessTokenResponse> CreateTokensAsync(AccessTokenRequest request, ValidateAsync validate, string userAgent, string ip, string geolocation)
@@ -44,8 +47,10 @@ public class AuthenticationService
             _ => throw new AuthenticationException(Messages.IncorrectGrantType)
         };
 
-        var accessToken = _accessTokenHandler.CreateToken(signId, user);
-        var refreshToken = _refreshTokenHandler.CreateToken(signId, user);
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var accessToken = _accessTokenHandler.CreateToken(user, roles.ToArray(), signId);
+        var refreshToken = _refreshTokenHandler.CreateToken(user, signId);
 
         await _tokenStorage.AddOrUpdateAsync(accessToken, refreshToken, _jwtSettings.RefreshTokenLifetime,
             new Client
@@ -61,19 +66,19 @@ public class AuthenticationService
         {
             AccessToken = jwtSecurityTokenHandler.WriteToken(accessToken),
             RefreshToken = jwtSecurityTokenHandler.WriteToken(refreshToken),
-            ExpiresIn = (int) _jwtSettings.AccessTokenLifetime.TotalSeconds,
-            TokenType = TokenTypes.Bearer
+            ExpiresIn = (int)_jwtSettings.AccessTokenLifetime.TotalSeconds,
+            TokenType = "bearer"
         };
     }
-    
-    private static async Task<(IdentityUser<long> user, string signId)> AuthenticateByPasswordAsync(ValidateAsync validate)
+
+    private static async Task<(User user, string signId)> AuthenticateByPasswordAsync(ValidateAsync validate)
     {
         var user = await validate(GrantTypes.Password, default);
         var signId = Guid.NewGuid().ToString("N");
         return (user, signId);
     }
 
-    private async Task<(IdentityUser<long> user, string signId)> AuthenticateByRefreshTokenAsync(string? refreshToken, ValidateAsync validate)
+    private async Task<(User user, string signId)> AuthenticateByRefreshTokenAsync(string? refreshToken, ValidateAsync validate)
     {
         var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
         jwtSecurityTokenHandler.ValidateToken(refreshToken, new TokenValidationParameters
@@ -88,12 +93,12 @@ public class AuthenticationService
             ClockSkew = _jwtSettings.ClockSkew
 
         }, out var validatedToken);
-        
+
         var securityToken = (JwtSecurityToken)validatedToken;
 
-        var userId = securityToken.Claims.GetUserLongId();
+        var userId = securityToken.Claims.GetUserId();
         var signId = securityToken.Claims.GetSignId();
-        
+
         if (!await _tokenStorage.IsRefreshStoredAsync(userId, signId, securityToken.Id))
             throw new AuthenticationException(Messages.IncorrectRefreshToken);
 

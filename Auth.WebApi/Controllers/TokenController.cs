@@ -1,6 +1,5 @@
 using Auth.Authentication;
 using Auth.Authentication.Constants;
-using Auth.Authentication.Services;
 using Auth.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +23,7 @@ public class TokenController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> SignInAsync(AccessTokenRequest request) //SignInCommand command)
     {
-        async Task<IdentityUser<long>> ValidateAsync(string grantType, long userId)
+        async Task<User> ValidateAsync(string grantType, long userId)
         {
             switch (grantType)
             {

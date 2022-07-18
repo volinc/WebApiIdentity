@@ -2,5 +2,6 @@
 
 public static class TokenTypes
 {
-    public const string Bearer = "bearer";
+    public const string Access = "access";
+    public const string Refresh = "refresh";
 }
