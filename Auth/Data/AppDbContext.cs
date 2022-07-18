@@ -7,7 +7,7 @@ namespace Auth.Data;
 
 public class AppDbContext : IdentityDbContext<User, Role, long, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>
 {
-    public const string ConnectionString = "Server=localhost; Database=gooffline; Username=postgres; Password=pass;";
+    public const string ConnectionString = "Server=localhost; Database=auth; Username=postgres; Password=pass;";
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Auth.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20220717232152_Initial")]
+    [Migration("20220718105356_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -56,9 +56,16 @@ namespace Auth.Migrations
                         new
                         {
                             Id = 1L,
-                            ConcurrencyStamp = "80656630-391e-4831-9311-a23fd27af40b",
+                            ConcurrencyStamp = "ac78d29d-506a-4e22-871e-1f2847c1c02f",
                             Name = "Admin",
                             NormalizedName = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            ConcurrencyStamp = "f2a311e5-cafa-4823-a412-75301f66e969",
+                            Name = "Customer",
+                            NormalizedName = "Customer"
                         });
                 });
 
@@ -173,7 +180,7 @@ namespace Auth.Migrations
                             Id = 1L,
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "c56d27cd-0585-4c55-9f4c-67f6e7c9f5f6",
-                            CreatedAt = new DateTimeOffset(new DateTime(2022, 7, 17, 23, 21, 51, 926, DateTimeKind.Unspecified).AddTicks(3514), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2022, 7, 18, 10, 53, 56, 500, DateTimeKind.Unspecified).AddTicks(8226), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "vol.inc@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
@@ -183,7 +190,7 @@ namespace Auth.Migrations
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "V4HRMVYXVPMX72WPRZMDMOU3J7RRWGGG",
                             TwoFactorEnabled = false,
-                            UpdatedAt = new DateTimeOffset(new DateTime(2022, 7, 17, 23, 21, 51, 926, DateTimeKind.Unspecified).AddTicks(3514), new TimeSpan(0, 0, 0, 0, 0)),
+                            UpdatedAt = new DateTimeOffset(new DateTime(2022, 7, 18, 10, 53, 56, 500, DateTimeKind.Unspecified).AddTicks(8226), new TimeSpan(0, 0, 0, 0, 0)),
                             UserName = "admin"
                         });
                 });
@@ -252,6 +259,11 @@ namespace Auth.Migrations
                         {
                             UserId = 1L,
                             RoleId = 1L
+                        },
+                        new
+                        {
+                            UserId = 1L,
+                            RoleId = 2L
                         });
                 });
 

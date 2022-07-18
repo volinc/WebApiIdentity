@@ -11,9 +11,14 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
         builder.ToTable("UserRoles");
 
         builder.HasData(new UserRole
-        {
-            UserId = Seed.SeedUserId,
-            RoleId = Seed.AdminRoleId
-        });
+            {
+                UserId = Seed.AdminUserId,
+                RoleId = Seed.AdminRoleId
+            },
+            new UserRole
+            {
+                UserId = Seed.AdminUserId,
+                RoleId = Seed.CustomerRoleId
+            });
     }
 }

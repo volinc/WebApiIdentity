@@ -12,10 +12,16 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.ToTable("Roles");
 
         builder.HasData(new Role
-        {
-            Id = Seed.AdminRoleId,
-            Name = Roles.Admin,
-            NormalizedName = Roles.Admin
-        });
+            {
+                Id = Seed.AdminRoleId,
+                Name = Roles.Admin,
+                NormalizedName = Roles.Admin
+            },
+            new Role
+            {
+                Id = Seed.CustomerRoleId,
+                Name = Roles.Customer,
+                NormalizedName = Roles.Customer
+            });
     }
 }

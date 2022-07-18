@@ -165,17 +165,25 @@ namespace Auth.Migrations
             migrationBuilder.InsertData(
                 table: "Roles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { 1L, "80656630-391e-4831-9311-a23fd27af40b", "Admin", "Admin" });
+                values: new object[,]
+                {
+                    { 1L, "ac78d29d-506a-4e22-871e-1f2847c1c02f", "Admin", "Admin" },
+                    { 2L, "f2a311e5-cafa-4823-a412-75301f66e969", "Customer", "Customer" }
+                });
 
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "AccessFailedCount", "Biography", "ConcurrencyStamp", "CreatedAt", "Email", "EmailConfirmed", "FirstName", "GivenName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UpdatedAt", "UserName" },
-                values: new object[] { 1L, 0, null, "c56d27cd-0585-4c55-9f4c-67f6e7c9f5f6", new DateTimeOffset(new DateTime(2022, 7, 17, 23, 21, 51, 926, DateTimeKind.Unspecified).AddTicks(3514), new TimeSpan(0, 0, 0, 0, 0)), "vol.inc@gmail.com", true, null, null, false, null, "VOL.INC@GMAIL.COM", "ADMIN", "AQAAAAEAACcQAAAAECpqxvmiOvp/DB0zEV6wvDRHAnkT+MjXsKFG+VWZBiHwA7xD2KOgNzNuh1CGUldifw==", null, false, "V4HRMVYXVPMX72WPRZMDMOU3J7RRWGGG", false, new DateTimeOffset(new DateTime(2022, 7, 17, 23, 21, 51, 926, DateTimeKind.Unspecified).AddTicks(3514), new TimeSpan(0, 0, 0, 0, 0)), "admin" });
+                values: new object[] { 1L, 0, null, "c56d27cd-0585-4c55-9f4c-67f6e7c9f5f6", new DateTimeOffset(new DateTime(2022, 7, 18, 10, 53, 56, 500, DateTimeKind.Unspecified).AddTicks(8226), new TimeSpan(0, 0, 0, 0, 0)), "vol.inc@gmail.com", true, null, null, false, null, "VOL.INC@GMAIL.COM", "ADMIN", "AQAAAAEAACcQAAAAECpqxvmiOvp/DB0zEV6wvDRHAnkT+MjXsKFG+VWZBiHwA7xD2KOgNzNuh1CGUldifw==", null, false, "V4HRMVYXVPMX72WPRZMDMOU3J7RRWGGG", false, new DateTimeOffset(new DateTime(2022, 7, 18, 10, 53, 56, 500, DateTimeKind.Unspecified).AddTicks(8226), new TimeSpan(0, 0, 0, 0, 0)), "admin" });
 
             migrationBuilder.InsertData(
                 table: "UserRoles",
                 columns: new[] { "RoleId", "UserId" },
-                values: new object[] { 1L, 1L });
+                values: new object[,]
+                {
+                    { 1L, 1L },
+                    { 2L, 1L }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",

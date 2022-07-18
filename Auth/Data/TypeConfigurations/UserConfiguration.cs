@@ -19,7 +19,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasData(new User
         {
-            Id = Seed.SeedUserId,
+            Id = Seed.AdminUserId,
             UserName = name,
             NormalizedUserName = name.ToUpperInvariant(),
             Email = email,

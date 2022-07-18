@@ -1,4 +1,5 @@
 using Auth.Abstractions;
+using Auth.Constants;
 using Auth.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -8,7 +9,6 @@ namespace Auth.WebApi.Controllers;
 
 [ApiController]
 [Route("users")]
-[Authorize]
 public class UserController : ControllerBase
 {
     private readonly UserManager<User> _userManager;
@@ -26,7 +26,7 @@ public class UserController : ControllerBase
     public async Task<IActionResult> CreateUserAsync()
     {
         var userName = Guid.NewGuid().ToString("N").ToLowerInvariant();
-        var email = $"{userName}@go.offline";
+        var email = $"{userName}@gmail.com";
         var createdAt = _now();
 
         var user = new User
@@ -37,14 +37,17 @@ public class UserController : ControllerBase
             UpdatedAt = createdAt,
             CreatedAt = createdAt
         };
-        var passwordHash = _userManager.PasswordHasher.HashPassword(user, "qwerty123");
-        user.PasswordHash = passwordHash;
-        
-        var resultValue = await _userManager.CreateAsync(user);
-        return Ok(resultValue);
+        var identityResult = await _userManager.CreateAsync(user, "qwerty123");
+        if (identityResult.Succeeded)
+        {
+            await _userManager.AddToRoleAsync(user, Roles.Customer);
+        }
+
+        return Ok(identityResult);
     }
 
     [HttpGet]
+    //[Authorize(Roles = Roles.Customer)]
     public async Task<IActionResult> GetCurrentUserAsync()
     {
         var user = User;
