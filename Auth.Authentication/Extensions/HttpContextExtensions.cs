@@ -31,16 +31,26 @@ public static class HttpContextExtensions
         return string.IsNullOrWhiteSpace(userAgent) ? null : userAgent;
     }
 
-    public static string? GetClientIp(this HttpContext? httpContext)
+    public static string? GetClientIp(this HttpContext? httpContext, string headerName)
     {
         ArgumentNullException.ThrowIfNull(httpContext, nameof(httpContext));
 
-        if (httpContext.Request.Headers.TryGetValue("cf-connecting-ip", out var value))
+        if (httpContext.Request.Headers.TryGetValue(headerName, out var value))
             return value;
 
         if (httpContext.Request.Headers.TryGetValue("X-Forwarded-For", out value))
             return value;
 
+        return null;
+    }
+
+    public static string? GetClientIpCountry(this HttpContext? httpContext, string headerName)
+    {
+        ArgumentNullException.ThrowIfNull(httpContext, nameof(httpContext));
+
+        if (httpContext.Request.Headers.TryGetValue(headerName, out var value))
+            return value;
+        
         return null;
     }
 }

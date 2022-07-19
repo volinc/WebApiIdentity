@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Auth.WebApi", "Auth.WebApi\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Auth.Authentication", "Auth.Authentication\Auth.Authentication.csproj", "{BE00AE36-C6D0-4CED-94A9-5684CBF2332D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Auth.Identity", "Auth.Abstractions\Auth.Identity.csproj", "{22FE4183-FD40-4B83-8851-1C6DE5D7B3D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Auth.Identity", "Auth.Identity\Auth.Identity.csproj", "{22FE4183-FD40-4B83-8851-1C6DE5D7B3D4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Auth", "Auth\Auth.csproj", "{1B26B838-2D08-459F-8BD4-D1A0C2035DA7}"
 EndProject

@@ -18,6 +18,7 @@ public class AuthenticationService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ISessionStorage _sessionStorage;
     private readonly JwtSettings _jwtSettings;
+    private readonly HttpHeaderSettings _httpHeaderSettings;
     private readonly AccessTokenHandler _accessTokenHandler;
     private readonly RefreshTokenHandler _refreshTokenHandler;
     private readonly CurrentTimeFunc _now;
@@ -26,6 +27,7 @@ public class AuthenticationService
         IHttpContextAccessor httpContextAccessor,
         ISessionStorage sessionStorage,
         JwtSettings jwtSettings,
+        HttpHeaderSettings httpHeaderSettings,
         AccessTokenHandler accessTokenHandler,
         RefreshTokenHandler refreshTokenHandler,
         CurrentTimeFunc now)
@@ -34,6 +36,7 @@ public class AuthenticationService
         _httpContextAccessor = httpContextAccessor;
         _sessionStorage = sessionStorage;
         _jwtSettings = jwtSettings;
+        _httpHeaderSettings = httpHeaderSettings;
         _accessTokenHandler = accessTokenHandler;
         _refreshTokenHandler = refreshTokenHandler;
         _now = now;
@@ -53,17 +56,8 @@ public class AuthenticationService
         var accessToken = _accessTokenHandler.CreateToken(user, roles.ToArray(), signId);
         var refreshToken = _refreshTokenHandler.CreateToken(user, signId);
 
-        var httpContext = _httpContextAccessor.HttpContext;
-        var userAgent = httpContext.GetUserAgent();
-        var clientIp = httpContext.GetClientIp();
-
-        await _sessionStorage.AddOrUpdateAsync(accessToken, refreshToken, _jwtSettings.RefreshTokenLifetime,
-            new Client
-            {
-                UserAgent = userAgent,
-                Ip = clientIp,
-                Location = null
-            });
+        var client = GetClientInfo();
+        await _sessionStorage.AddOrUpdateAsync(accessToken, refreshToken, _jwtSettings.RefreshTokenLifetime, client);
 
         var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
 
@@ -74,6 +68,21 @@ public class AuthenticationService
             ExpiresIn = (int)_jwtSettings.AccessTokenLifetime.TotalSeconds,
             TokenType = "bearer"
         };
+    }
+
+    private ClientInfo GetClientInfo()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        var userAgent = httpContext.GetUserAgent();
+        var ip = httpContext.GetClientIp(_httpHeaderSettings.IPHeaderName);
+        var ipCountry = httpContext.GetClientIpCountry(_httpHeaderSettings.IPCountryHeaderName);
+        var client = new ClientInfo
+        {
+            UserAgent = userAgent,
+            Ip = ip,
+            IpCountry = ipCountry
+        };
+        return client;
     }
 
     private async Task<(User user, string sessionId)> AuthenticateByPasswordAsync(string? userName, string? password)
@@ -118,9 +127,9 @@ public class AuthenticationService
         return (user, signId);
     }
 
-    public Task<Dictionary<string, Client>> GetAllSessionsAsync(long userId) => _sessionStorage.GetAllSessionsAsync(userId);
+    public Task<Dictionary<string, ClientInfo>> GetAllSessionsAsync(long userId) => _sessionStorage.GetAllSessionsAsync(userId);
 
-    public Task<Dictionary<string, Client>> GetActiveSessionsAsync(long userId)
+    public Task<Dictionary<string, ClientInfo>> GetActiveSessionsAsync(long userId)
     {
         return _sessionStorage.GetActiveSessionsAsync(userId, _now());
     }

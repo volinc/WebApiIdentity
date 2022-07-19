@@ -8,19 +8,19 @@ public interface ISessionStorage
         JwtSecurityToken accessToken,
         JwtSecurityToken refreshToken,
         TimeSpan refreshTokenLifetime,
-        Client client);
+        ClientInfo clientInfo);
 
     Task AddOrUpdateAsync(
         JwtSecurityToken accessToken,
         JwtSecurityToken refreshToken,
         TimeSpan tokenLifetime,
-        Client client);
+        ClientInfo clientInfo);
 
     Task<bool> IsRefreshStoredAsync(long userId, string signId, string refreshTokenId);
 
     Task RemoveAsync(long userId, string signId);
     Task RemoveAllAsync(long userId, string? exceptSignId = null);
 
-    Task<Dictionary<string, Client>> GetAllSessionsAsync(long userId);
-    Task<Dictionary<string, Client>> GetActiveSessionsAsync(long userId, DateTimeOffset currentTime);
+    Task<Dictionary<string, ClientInfo>> GetAllSessionsAsync(long userId);
+    Task<Dictionary<string, ClientInfo>> GetActiveSessionsAsync(long userId, DateTimeOffset currentTime);
 }

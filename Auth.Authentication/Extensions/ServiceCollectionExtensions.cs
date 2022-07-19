@@ -19,8 +19,12 @@ public static class ServiceCollectionExtensions
         where TUser : IdentityUser<long>
         where TRole : IdentityRole<long>
     {
+        var httpHeaderSettings = new HttpHeaderSettings();
+        configuration.Bind("HttpHeaderSettings", httpHeaderSettings);
+        services.AddSingleton(httpHeaderSettings);
+
         var jwtSettings = new JwtSettings();
-        configuration.Bind(nameof(JwtSettings), jwtSettings);
+        configuration.Bind("JwtSettings", jwtSettings);
         services.AddSingleton(jwtSettings);
 
         services.AddAuthentication(options =>
@@ -43,7 +47,19 @@ public static class ServiceCollectionExtensions
                     ValidateLifetime = true,
                     ClockSkew = jwtSettings.ClockSkew
                 };
+            })
+            .AddGoogle(options =>
+            {
+                var googleAuthNSection = configuration.GetSection("Authentication:Google");
+                options.ClientId = googleAuthNSection["ClientId"];
+                options.ClientSecret = googleAuthNSection["ClientSecret"];
             });
+            //.AddFacebook(options =>
+            //{
+            //    var fbAuthNSection = configuration.GetSection("Authentication:FB");
+            //    options.ClientId = fbAuthNSection["ClientId"];
+            //    options.ClientSecret = fbAuthNSection["ClientSecret"];
+            //});
         
         services.AddIdentityCore<TUser>(options =>
             {

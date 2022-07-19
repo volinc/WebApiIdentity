@@ -6,7 +6,7 @@ namespace Auth.Authentication.SessionStorage;
 
 public class DefaultSessionStorage : ISessionStorage
 {
-    private static readonly Dictionary<string, Client> EmptyClients = new();
+    private static readonly Dictionary<string, ClientInfo> EmptyClients = new();
 
     private readonly Utf8JsonBinarySerializer _binarySerializer;
     private readonly IDistributedCache _cache;
@@ -26,7 +26,7 @@ public class DefaultSessionStorage : ISessionStorage
         JwtSecurityToken accessToken,
         JwtSecurityToken refreshToken,
         TimeSpan refreshTokenLifetime,
-        Client client)
+        ClientInfo clientInfo)
     {
         var userSignIn = new UserSignIn();
         var signId = refreshToken.Claims.GetSignId();
@@ -38,7 +38,7 @@ public class DefaultSessionStorage : ISessionStorage
             AccessJwtSecurityTokenId = accessToken.Id,
             RefreshJwtSecurityTokenId = refreshToken.Id,
             RefreshTokenExpiredAt = absoluteExpiration,
-            Client = client
+            ClientInfo = clientInfo
         });
 
         await SaveUserSignInByUserId(userId, userSignIn, absoluteExpiration);
@@ -48,7 +48,7 @@ public class DefaultSessionStorage : ISessionStorage
         JwtSecurityToken accessToken,
         JwtSecurityToken refreshToken,
         TimeSpan refreshTokenLifetime,
-        Client client)
+        ClientInfo clientInfo)
     {
         var userId = refreshToken.Claims.GetUserId();
         var currentTime = _now();
@@ -64,7 +64,7 @@ public class DefaultSessionStorage : ISessionStorage
                 AccessJwtSecurityTokenId = accessToken.Id,
                 RefreshJwtSecurityTokenId = refreshToken.Id,
                 RefreshTokenExpiredAt = absoluteExpiration,
-                Client = client
+                ClientInfo = clientInfo
             });
         }
         else
@@ -77,7 +77,7 @@ public class DefaultSessionStorage : ISessionStorage
                 tokens.AccessJwtSecurityTokenId = accessToken.Id;
                 tokens.RefreshJwtSecurityTokenId = refreshToken.Id;
                 tokens.RefreshTokenExpiredAt = absoluteExpiration;
-                tokens.Client = client;
+                tokens.ClientInfo = clientInfo;
             }
             else
             {
@@ -86,7 +86,7 @@ public class DefaultSessionStorage : ISessionStorage
                     AccessJwtSecurityTokenId = accessToken.Id,
                     RefreshJwtSecurityTokenId = refreshToken.Id,
                     RefreshTokenExpiredAt = absoluteExpiration,
-                    Client = client
+                    ClientInfo = clientInfo
                 });
             }
         }
@@ -144,7 +144,7 @@ public class DefaultSessionStorage : ISessionStorage
         }
     }
 
-    public async Task<Dictionary<string, Client>> GetAllSessionsAsync(long userId)
+    public async Task<Dictionary<string, ClientInfo>> GetAllSessionsAsync(long userId)
     {
         var userSignIn = await GetUserSignInByUserId(userId);
         if (userSignIn is null)
@@ -152,10 +152,10 @@ public class DefaultSessionStorage : ISessionStorage
 
         return userSignIn
             .Items
-            .ToDictionary(x => x.Key, x => x.Value.Client);
+            .ToDictionary(x => x.Key, x => x.Value.ClientInfo);
     }
 
-    public async Task<Dictionary<string, Client>> GetActiveSessionsAsync(long userId, DateTimeOffset currentTime)
+    public async Task<Dictionary<string, ClientInfo>> GetActiveSessionsAsync(long userId, DateTimeOffset currentTime)
     {
         var userSignIn = await GetUserSignInByUserId(userId);
         if (userSignIn is null)
@@ -164,7 +164,7 @@ public class DefaultSessionStorage : ISessionStorage
         return userSignIn
             .Items
             //.Where(p => p.Value.RefreshTokenExpiredAt < currentTime)
-            .ToDictionary(x => x.Key, x => x.Value.Client);
+            .ToDictionary(x => x.Key, x => x.Value.ClientInfo);
     }
 
     protected virtual void RemoveOverflowTokens(UserSignIn userSignIn)
