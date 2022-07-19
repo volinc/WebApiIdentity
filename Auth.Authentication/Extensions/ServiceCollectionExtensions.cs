@@ -53,6 +53,7 @@ public static class ServiceCollectionExtensions
                 var googleAuthNSection = configuration.GetSection("Authentication:Google");
                 options.ClientId = googleAuthNSection["ClientId"];
                 options.ClientSecret = googleAuthNSection["ClientSecret"];
+                options.SignInScheme = IdentityConstants.ExternalScheme
             });
             //.AddFacebook(options =>
             //{
