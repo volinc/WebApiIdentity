@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
             services.AddStackExchangeRedisCache(options => { options.Configuration = redisConnectionString; });
     }
 
-    public static void AddPersistentStorage(this IServiceCollection services, IConfiguration configuration)
+    public static void AddTableStorage(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetValue<string>("CONNECTION_STRING");
         services.AddDbContext<AppDbContext>(options =>

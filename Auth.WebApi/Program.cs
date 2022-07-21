@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddSingleton<CurrentTimeFunc>(() => DateTimeOffset.UtcNow);
-builder.Services.AddPersistentStorage(builder.Configuration);
+builder.Services.AddTableStorage(builder.Configuration);
 builder.Services.AddCache(builder.Configuration);
 builder.Services.AddIdentityAuthentication<AppDbContext, User, Role>(builder.Configuration);
 
